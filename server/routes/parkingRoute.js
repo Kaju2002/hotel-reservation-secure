@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const parkingMail = require('../utils/parkingMail');
-
 const parkingModel = require('../models/Parking');
+const { requireAuth } = require('../middleware/auth');
 
 router.get('/availability', async (req, res) => {
     const { date, userID } = req.query;
@@ -148,17 +148,25 @@ router.get('/getAllParkings', async (req, res) => {
     }
 });
 
-router.post('/send-gatepass', async (req, res) => {
-    const { userEmail, bookingDetails, qrCode } = req.body;
+// Auth required — email always taken from JWT, never from client body (blocks open relay)
+router.post('/send-gatepass', requireAuth, async (req, res) => {
+    const { bookingDetails, qrCode } = req.body;
+    const userEmail = req.user.email;
+
+    if (!userEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+        return res.status(400).json({ message: 'Authenticated user has no valid email.' });
+    }
+
+    if (!bookingDetails || !qrCode) {
+        return res.status(400).json({ message: 'bookingDetails and qrCode are required.' });
+    }
 
     try {
-        // Send the gate pass email
         await parkingMail.sendGatePassEmail(userEmail, bookingDetails, qrCode);
         res.status(200).json({ message: "Gate pass email sent successfully." });
     } catch (error) {
         res.status(500).json({ message: "Failed to send gate pass email.", error });
     }
-    
 });
 router.get('/availability/today', async (req, res) => {
     const systemDate = new Date().toISOString().split('T')[0]; // Get the system date in YYYY-MM-DD format

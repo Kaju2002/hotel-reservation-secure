@@ -54,6 +54,7 @@ function NavBarUser() {
 
     function logout() {
         localStorage.removeItem("currentUser");
+        localStorage.removeItem("authToken");
         localStorage.removeItem("selectedCategory");
         window.location.href = "/login";
     }
