@@ -29,6 +29,9 @@ function LoginPage() {
                     "currentUser",
                     JSON.stringify(response.data.user)
                 );
+                if (response.data.token) {
+                    localStorage.setItem("authToken", response.data.token);
+                }
 
                 if (response.data.user.userType === "Admin") {
                     // Navigate to the admin dashboard

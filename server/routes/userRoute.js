@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
-const upload = require('../utils/upload'); // Adjust the path as necessary
+const upload = require('../utils/upload');
+const { signToken } = require('../middleware/auth');
 
 // Function to generate a unique user ID
 const generateUserID = async () => {
@@ -115,8 +116,9 @@ router.post('/login', async (req, res) => {
             updatedAt: user.updatedAt
         };
 
-        // Respond with the user object
-        res.status(200).json({ message: 'Login successful', user: userResponse });
+        // Respond with the user object and JWT for authenticated API calls
+        const token = signToken(userResponse);
+        res.status(200).json({ message: 'Login successful', user: userResponse, token });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

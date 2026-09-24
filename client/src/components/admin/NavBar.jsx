@@ -42,6 +42,7 @@ const items = [
                 rel="noopener noreferrer"
                 onClick={() => {
                     localStorage.removeItem("currentUser");
+                    localStorage.removeItem("authToken");
                     window.location.href = "/login";
                 }}
             >

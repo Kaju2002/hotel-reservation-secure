@@ -153,11 +153,18 @@ function ParkingPage() {
             const qrData = `Vehicle: ${vehicleNumber}, Slot: ${selectedSlot}, Date: ${selectedDate}, Duration: ${bookingDuration}, Price: LKR ${price}`;
         const qrCodeUrl = await QRCode.toDataURL(qrData); // Generate QR code
     
-            await axios.post("/api/parking/send-gatepass", {
-                userEmail: user.email, // Assuming user.email is available in your user object
-                bookingDetails,
-                qrCode: qrCodeUrl,
-            });
+            await axios.post(
+                "/api/parking/send-gatepass",
+                {
+                    bookingDetails,
+                    qrCode: qrCodeUrl,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+                    },
+                }
+            );
     
             message.success("Gate pass sent to your email.");
 
