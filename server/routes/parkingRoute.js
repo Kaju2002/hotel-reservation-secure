@@ -163,7 +163,10 @@ router.post('/send-gatepass', requireAuth, async (req, res) => {
 
     try {
         await parkingMail.sendGatePassEmail(userEmail, bookingDetails, qrCode);
-        res.status(200).json({ message: "Gate pass email sent successfully." });
+        res.status(200).json({
+            message: "Gate pass email sent successfully.",
+            sentTo: userEmail, // JWT email only — never from request body
+        });
     } catch (error) {
         res.status(500).json({ message: "Failed to send gate pass email.", error });
     }
