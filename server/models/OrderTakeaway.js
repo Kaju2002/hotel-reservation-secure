@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const mealSchema = new mongoose.Schema({
+  itemId: { type: String, required: true },
   name: { type: String, required: true },
   price: { type: Number, required: true },
-  specialInstructions: { type: String, default: '' } // For storing customization details
+  specialInstructions: { type: String, default: '' }
 });
 
 const addressSchema = new mongoose.Schema({
