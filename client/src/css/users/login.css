@@ -10,7 +10,8 @@
   margin-top: -30px;
   background: #ffffff;
   width: 554px;
-  height: 720px;
+  min-height: 720px;
+  height: auto;
   text-align: center;
   padding: 40px;
   flex-shrink: 0;
@@ -18,26 +19,83 @@
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
 .sg_login_title_main_container {
-  margin-top: 90px;
+  margin-top: 40px;
+  text-align: center;
+  width: 100%;
+}
+
+.sg_oauth_buttons_row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0 8px;
+}
+
+.sg_oauth_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 240px;
+  padding: 12px 14px;
+  background: #f4f7fe;
+  border: 1px solid #e0e5f2;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b2559;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sg_oauth_btn:hover {
+  background: #eef2ff;
+  box-shadow: 0 2px 8px rgba(67, 24, 255, 0.08);
+}
+
+.sg_oauth_btn svg {
+  flex-shrink: 0;
+}
+
+.sg_oauth_divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 8px;
+  color: #a3aed0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sg_oauth_divider::before,
+.sg_oauth_divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e5f2;
 }
 
 .sg_logon_title {
-  width: 253px;
-  height: 41px;
-  margin-bottom: 5px;
+  width: 100%;
+  height: auto;
+  margin: 0 auto 8px;
   color: #313131;
   font-weight: 600;
+  font-size: 28px;
+  text-align: center;
 }
 
 .sg_login_subtitle {
-  margin-bottom: 40px;
-  margin-right: 233px;
-  color: var(--T, #313131);
+  margin: 0 auto 8px;
+  color: #6b7280;
   font-size: 16px;
   font-weight: 400;
+  text-align: center;
+  width: 100%;
 }
 .sg_input_filed_main {
-  margin-top: 60px;
+  margin-top: 16px;
 }
 
 .sg_login_email_input {
