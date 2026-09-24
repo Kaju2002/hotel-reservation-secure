@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config(); // Load environment variables from .env file
 const cors = require("cors");
+const multer = require("multer");
 const cron = require("node-cron"); // Schedule tasks (cron jobs)
 const { sendReminderEmail } = require('./utils/emailService'); // Email sending service
 const Reminder = require('./models/reminder'); // Reminder model
@@ -87,6 +88,9 @@ cron.schedule('* * * * *', async () => { // Runs every minute
 
 // Basic Error Handling Middleware
 app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError || err.message === "Only image uploads are allowed") {
+        return res.status(400).json({ error: err.message });
+    }
     console.error(err.stack);
     res.status(500).send({
         error: "Something went wrong, please try again later."
