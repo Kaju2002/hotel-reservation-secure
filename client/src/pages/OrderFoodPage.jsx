@@ -112,8 +112,10 @@ function MealOrderPage() {
       customerName,
       customerID,
       roomNumber,
-      amount: totalAmount,
-      meals: selectedMeals,  // Send entire meal objects instead of just names
+      meals: selectedMeals.map((meal) => ({
+        itemId: meal.itemId,
+        specialInstructions: meal.specialInstructions || "",
+      })),
       scheduledDeliveryTime,
     };
   

@@ -24,6 +24,57 @@ async function generateUniqueOrderId() {
   return orderId;
 }
 
+// Resolve prices from Catering DB — never trust client amount or meals[].price
+async function resolveOrderMeals(meals) {
+  if (!Array.isArray(meals) || meals.length === 0) {
+    const err = new Error("Order must include at least one meal.");
+    err.status = 400;
+    throw err;
+  }
+
+  let total = 0;
+  const pricedMeals = [];
+
+  for (const m of meals) {
+    let item = null;
+
+    if (m.itemId) {
+      item = await Catering.findOne({ itemId: m.itemId });
+    } else if (m.name) {
+      // Admin edits may send names only — still resolve price from DB
+      item = await Catering.findOne({ name: m.name.trim() });
+    }
+
+    if (!item) {
+      const err = new Error(
+        `Invalid menu item: ${m.itemId || m.name || "unknown"}`
+      );
+      err.status = 400;
+      throw err;
+    }
+
+    const quantity = Math.max(1, Math.floor(Number(m.quantity)) || 1);
+    total += item.price * quantity;
+
+    for (let i = 0; i < quantity; i++) {
+      pricedMeals.push({
+        itemId: item.itemId,
+        name: item.name,
+        price: item.price,
+        specialInstructions: m.specialInstructions || "",
+      });
+    }
+  }
+
+  if (total <= 0) {
+    const err = new Error("Order total must be greater than zero.");
+    err.status = 400;
+    throw err;
+  }
+
+  return { amount: total, pricedMeals };
+}
+
 // Route to get all orders
 router.get("/getOrders", async (req, res) => {
   try {
@@ -61,9 +112,10 @@ router.post("/addOrdertakeaway", async (req, res) => {
         address,
         meals,
         orderType,
-        totalAmount,
         scheduledDeliveryTime,
       } = req.body;
+
+      const { amount: totalAmount, pricedMeals } = await resolveOrderMeals(meals);
   
       if (orderType === "takeaway") {
         const slotTime = moment(scheduledDeliveryTime);
@@ -85,7 +137,7 @@ router.post("/addOrdertakeaway", async (req, res) => {
         customerID,
         phoneNumber,
         address: orderType === "delivery" ? address : undefined, // Only include address for delivery
-        meals,
+        meals: pricedMeals,
         orderType,
         totalAmount,
         scheduledDeliveryTime: orderType === "takeaway" ? new Date(scheduledDeliveryTime) : null,
@@ -96,6 +148,9 @@ router.post("/addOrdertakeaway", async (req, res) => {
       res.status(201).json(newOrder);
     } catch (err) {
       console.error("Error adding order:", err);
+      if (err.status === 400) {
+        return res.status(400).json({ message: err.message });
+      }
       res.status(500).json({ error: "Internal server error", details: err.message });
     }
   });
@@ -119,11 +174,13 @@ router.post("/addOrder", async (req, res) => {
       purchaseDate,
       customerName,
       customerID,
-      amount,
-      meals, // This is an array of meal objects
+      meals,
       roomNumber,
-      scheduledDeliveryTime, // If scheduling is needed
+      scheduledDeliveryTime,
     } = req.body;
+
+    // Prices from Catering DB — ignore client amount and meals[].price
+    const { amount, pricedMeals } = await resolveOrderMeals(meals);
 
     const orderId = await generateUniqueOrderId();
     const newOrder = new orderModel({
@@ -133,14 +190,17 @@ router.post("/addOrder", async (req, res) => {
       customerID,
       roomNumber,
       amount,
-      meals, // Store the meal objects with customizations and prices
+      meals: pricedMeals,
       status: "Pending",
-      scheduledDeliveryTime, // Optional: store scheduled time if provided
+      scheduledDeliveryTime,
     });
     
     await newOrder.save();
     res.status(201).json(newOrder);
   } catch (err) {
+    if (err.status === 400) {
+      return res.status(400).json({ message: err.message });
+    }
     res.status(500).send(err);
   }
 });
@@ -153,14 +213,15 @@ router.post("/updateItem", async (req, res) => {
       purchaseDate,
       customerName,
       customerID,
-      amount,
       meals,
       status,
     } = req.body;
 
+    const { amount, pricedMeals } = await resolveOrderMeals(meals);
+
     const updatedOrder = await orderModel.findOneAndUpdate(
       { orderId },
-      { purchaseDate, customerName, customerID, amount, meals, status },
+      { purchaseDate, customerName, customerID, amount, meals: pricedMeals, status },
       { new: true }
     );
 
@@ -170,6 +231,9 @@ router.post("/updateItem", async (req, res) => {
 
     res.json(updatedOrder);
   } catch (err) {
+    if (err.status === 400) {
+      return res.status(400).json({ message: err.message });
+    }
     res.status(500).send(err);
   }
 });
@@ -184,10 +248,11 @@ router.post("/updatetakeawayorder", async (req, res) => {
       address,
       meals,
       orderType,
-      totalAmount,
       scheduledDeliveryTime,
       status,
     } = req.body;
+
+    const { amount: totalAmount, pricedMeals } = await resolveOrderMeals(meals);
 
     const updatedOrder = await orderModelT.findOneAndUpdate(
       { orderId },
@@ -196,7 +261,7 @@ router.post("/updatetakeawayorder", async (req, res) => {
         customerID,
         phoneNumber,
         address,
-        meals,
+        meals: pricedMeals,
         orderType,
         totalAmount,
         scheduledDeliveryTime,
@@ -211,6 +276,9 @@ router.post("/updatetakeawayorder", async (req, res) => {
 
     res.json(updatedOrder);
   } catch (err) {
+    if (err.status === 400) {
+      return res.status(400).json({ message: err.message });
+    }
     res.status(500).send(err);
   }
 });
@@ -249,12 +317,14 @@ router.post("/deletetakeawayorder", async (req, res) => {
 router.put("/updateOrder/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { purchaseDate, customerName, customerID, amount, meals, status } =
+    const { purchaseDate, customerName, customerID, meals, status } =
       req.body;
+
+    const { amount, pricedMeals } = await resolveOrderMeals(meals);
 
     const updatedOrder = await orderModel.findOneAndUpdate(
       { orderId },
-      { purchaseDate, customerName, customerID, amount, meals, status },
+      { purchaseDate, customerName, customerID, amount, meals: pricedMeals, status },
       { new: true }
     );
 
@@ -264,6 +334,9 @@ router.put("/updateOrder/:orderId", async (req, res) => {
 
     res.json(updatedOrder);
   } catch (err) {
+    if (err.status === 400) {
+      return res.status(400).json({ message: err.message });
+    }
     res.status(500).send(err);
   }
 });

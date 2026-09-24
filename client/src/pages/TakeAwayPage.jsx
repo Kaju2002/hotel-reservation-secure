@@ -222,12 +222,10 @@ function MealOrderPage() {
             }
           : null,
       meals: selectedMeals.map((meal) => ({
-        name: meal.name,
-        price: meal.price,
-        specialInstructions: "", // This could be added if your UI supports it
+        itemId: meal.itemId,
+        specialInstructions: "",
       })),
       orderType,
-      totalAmount: totalAmount + peakHourSurcharge,
       scheduledDeliveryTime:
         orderType === "takeaway" ? moment(selectedTimeSlot, 'HH:mm').toDate() : null,
       status: "Pending",
