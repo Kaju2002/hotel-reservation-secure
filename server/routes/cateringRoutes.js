@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const upload = require('../utils/upload'); // Adjust path as necessary
 const cateringModel = require('../models/Catering');
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 // Function to generate a unique item ID
 async function generateUniqueItemId() {
@@ -115,8 +116,7 @@ router.post('/updateItem', upload.single('image'), async (req, res) => {
 });
 
 // Route to delete a food item
-router.post('/deleteItem', async (req, res) => {
-    try {
+router.post('/deleteItem', requireAuth, requireRole('Admin'), async (req, res) => {    try {
         const { itemId } = req.body;
 
         if (!itemId) {
