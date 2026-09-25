@@ -5,7 +5,7 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const EmailService = require('../utils/emailService');
 const upload = require('../utils/upload');
-
+const { requireAuth, requireRole } = require('../middleware/auth');
 
 
 
@@ -365,7 +365,7 @@ router.get('/getEmployeesByDepartment/:department', async (req, res) => {
     }
 });
 
-router.post('/addSalary', async (req, res) => {
+router.post('/addSalary', requireAuth, requireRole('Admin'), async (req, res) => {
     const { employeeId, amount, bank, bankBranchNumber, accountNumber } = req.body;
 
     try {
@@ -395,7 +395,7 @@ router.post('/addSalary', async (req, res) => {
 });
 
 // Route to view salary by employee ID
-router.get('/viewSalary/:employeeId', async (req, res) => {
+router.get('/viewSalary/:employeeId', requireAuth, requireRole('Admin'), async (req, res) => {
     const { employeeId } = req.params;
 
     try {
