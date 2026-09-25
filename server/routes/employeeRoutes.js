@@ -27,9 +27,9 @@ async function generateUniqueEmployeeId() {
 }
 
 // Fetch all employees
-router.get('/getEmployees', async (req, res) => {
+router.get('/getEmployees', requireAuth, requireRole('Admin', 'Employee'), async (req, res) => {
     try {
-        const employees = await employeeModel.find();
+        const employees = await employeeModel.find().select('-salary');
         res.json(employees);
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
