@@ -30,4 +30,16 @@ function requireAuth(req, res, next) {
     }
 }
 
-module.exports = { signToken, requireAuth, JWT_SECRET };
+// Restrict a route to specific user roles (use after requireAuth)
+function requireRole(...allowedRoles) {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.userType)) {
+            return res.status(403).json({ message: 'Forbidden: insufficient permissions' });
+        }
+        next();
+    };
+}
+
+module.exports = { signToken, requireAuth, requireRole, JWT_SECRET };
+
+
