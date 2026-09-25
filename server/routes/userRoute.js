@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const upload = require('../utils/upload');
-const { signToken } = require('../middleware/auth');
+const { signToken, requireAuth } = require('../middleware/auth');
 
 // Function to generate a unique user ID
 const generateUserID = async () => {
@@ -126,10 +126,10 @@ router.post('/login', async (req, res) => {
 });
 
 // Update User Route
-router.post('/updateUser', upload.single('profilePic'), async (req, res) => {
+router.post('/updateUser', requireAuth, upload.single('profilePic'), async (req, res) => {
     try {
-        const { userID, firstName, lastName, email, username } = req.body;
-
+        const userID = req.user.userID; // always from the verified JWT — never trust the body
+        const { firstName, lastName, email, username } = req.body;
         // Create an update object
         const updateData = { firstName, lastName, email, username };
 
