@@ -4,24 +4,14 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const upload = require('../utils/upload');
 const { signToken, requireAuth } = require('../middleware/auth');
+const crypto = require('crypto');
+
 
 // Function to generate a unique user ID
-const generateUserID = async () => {
-    let userID;
-    let userExists;
-
-    do {
-        // Generate a random number and prepend with 'U'
-        const randomNum = Math.floor(10000 + Math.random() * 90000);
-        userID = `U${randomNum}`;
-
-        // Check if this userID already exists in the database
-        userExists = await User.findOne({ userID });
-
-    } while (userExists);
-
-    return userID;
+const generateUserID = () => {
+    return `USR-${crypto.randomUUID()}`;
 };
+
 
 // Signup Route
 router.post('/signup', upload.single('profilePic'), async (req, res) => {
@@ -116,7 +106,6 @@ router.post('/login', async (req, res) => {
             updatedAt: user.updatedAt
         };
 
-        // Respond with the user object and JWT for authenticated API calls
         const token = signToken(userResponse);
         res.status(200).json({ message: 'Login successful', user: userResponse, token });
     } catch (error) {

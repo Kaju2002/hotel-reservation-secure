@@ -26,8 +26,27 @@ const reminderRoutes = require('./routes/reminderRoutes');
 const cheffRoutes = require('./routes/cheffRoutes');
 
 
+const allowedOrigins = [
+    process.env.CLIENT_URL || 'http://localhost:3000'
+];
+
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Blocked by CORS policy: unauthorized origin'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+};
+
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json()); // Parse JSON bodies
 app.use(express.json())
 
