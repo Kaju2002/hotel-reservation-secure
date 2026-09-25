@@ -7,6 +7,7 @@ import EventListPage from "./pages/EventListPage";
 import EventViewPage from "./pages/EventViewPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import LoginPage from "./pages/LoginPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import OrderFoodPage from "./pages/OrderFoodPage";
 import RoomListPage from "./pages/RoomListPage";
 import RoomViewPage from "./pages/RoomViewPage";
@@ -25,6 +26,7 @@ function App() {
                 <Routes>
                     <Route path="/admin/*" element={<AdminPage />} exact />
                     <Route path="/login" element={<LoginPage />} exact />
+                    <Route path="/oauth/callback" element={<OAuthCallbackPage />} exact />
                     <Route path="/signup" element={<SignupPage />} exact />
                     <Route
                         path="/*"
