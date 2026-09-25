@@ -395,8 +395,12 @@ router.post('/addSalary', requireAuth, requireRole('Admin'), async (req, res) =>
 });
 
 // Route to view salary by employee ID
-router.get('/viewSalary/:employeeId', requireAuth, requireRole('Admin'), async (req, res) => {
+router.get('/viewSalary/:employeeId', requireAuth, requireRole('Admin', 'Employee'), async (req, res) => {
     const { employeeId } = req.params;
+
+    if (req.user.userType === 'Employee' && req.user.userID !== employeeId) {
+        return res.status(403).json({ message: 'Forbidden: employees may only view their own salary' });
+    }
 
     try {
         const employee = await employeeModel.findOne({ employeeId });
