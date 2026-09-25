@@ -42,8 +42,8 @@ router.post('/book', async (req, res) => {
 });
 
 // Endpoint to retrieve parking bookings for a specific user
-router.post('/getUserParking', async (req, res) => {
-    const { userID } = req.body;
+router.post('/getUserParking', requireAuth, async (req, res) => {
+    const userID = req.user.userID; // always from the verified JWT — never trust the body
 
     try {
         const bookings = await parkingModel.find({ userID });
