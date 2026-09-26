@@ -26,7 +26,7 @@ let transporter = nodemailer.createTransport({
 class EmailService {
     static async sendReminderEmail(userEmail, event) {
         try {
-            const safeEventName = escapeHtml(event.eventName);
+            const safeEventName = escapeHtml(event.safeEventName);
 
             // Format the event date for better readability in the email
             const eventDateFormatted = new Date(event.eventDate).toLocaleString('en-US', {
@@ -40,7 +40,7 @@ class EmailService {
             const mailOptions = {
                 from: `"Event Reminder" <${process.env.GMAIL_EMAIL}>`, // Sender email (from your .env)
                 to: userEmail, // Recipient email (user)
-                subject: `Reminder: ${event.eventName} is Coming Up!`, // Custom subject line with event name
+                subject: `Reminder: ${event.safeEventName} is Coming Up!`, // Custom subject line with event name
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <div style="background-color: #ffffff; padding: 30px; border-radius: 10px;">
@@ -58,7 +58,7 @@ class EmailService {
                             </p>
 
                             <p style="font-size: 18px; color: #555555; line-height: 1.6; text-align: center;">
-                                This is a friendly reminder that the event "<strong>${event.eventName}</strong>" is happening tomorrow! 
+                                This is a friendly reminder that the event "<strong>${event.safeEventName}</strong>" is happening tomorrow! 
                                 We are excited to have you with us for this wonderful event. 
                             </p>
 
@@ -66,7 +66,7 @@ class EmailService {
                             <div style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; margin-top: 30px; text-align: center;">
                                 <h3 style="font-size: 22px; margin: 0 0 10px 0; color: #333;">Event Details</h3>
                                 <p style="font-size: 18px; margin: 0;">
-                                    <strong>Event Name:</strong> ${event.eventName}<br>
+                                    <strong>Event Name:</strong> ${event.safeEventName}<br>
                                     <strong>Location:</strong> Six TH Gear Hotel
                                 </p>
                             </div>
