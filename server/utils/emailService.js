@@ -1,5 +1,15 @@
 const nodemailer = require('nodemailer');
 
+// Escape HTML special characters to prevent HTML injection in emails
+const escapeHtml = (value) => {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+
 // Email setup with Gmail configuration
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -16,6 +26,8 @@ let transporter = nodemailer.createTransport({
 class EmailService {
     static async sendReminderEmail(userEmail, event) {
         try {
+            const safeEventName = escapeHtml(event.eventName);
+
             // Format the event date for better readability in the email
             const eventDateFormatted = new Date(event.eventDate).toLocaleString('en-US', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric'
