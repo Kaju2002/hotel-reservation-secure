@@ -5,23 +5,48 @@ const Reminder = require('../models/reminder'); // Reminder model
 const eventModel = require('../models/Event');
 const eventBookingModel = require('../models/eventBooking');
 
+// Escape regex metacharacters so user input is treated as literal search text
+const escapeRegex = (value) => {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 router.get('/getEvents', async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = '' } = req.query;
-        const events = await eventModel.find({
-            eventName: { $regex: search, $options: 'i' } // case-insensitive search
-        })
-        .skip((page - 1) * limit)
-        .limit(parseInt(limit));
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const requestedLimit = parseInt(req.query.limit, 10) || 10;
+        const limit = Math.min(Math.max(requestedLimit, 1), 50);
+        const search = String(req.query.search || '').trim();
 
-        const totalEvents = await eventModel.countDocuments({
-            eventName: { $regex: search, $options: 'i' }
+        // Prevent excessively large search inputs
+        if (search.length > 50) {
+            return res.status(400).json({
+                message: 'Search term must not exceed 50 characters'
+            });
+        }
+
+        // Treat user input as literal text instead of allowing arbitrary regex patterns
+        const safeSearch = escapeRegex(search);
+
+        const searchFilter = {
+            eventName: { $regex: safeSearch, $options: 'i' }
+        };
+
+        const events = await eventModel.find(searchFilter)
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const totalEvents = await eventModel.countDocuments(searchFilter);
+
+        res.status(200).json({
+            events,
+            totalPages: Math.ceil(totalEvents / limit)
         });
-
-        res.status(200).json({ events, totalPages: Math.ceil(totalEvents / limit) });
     } catch (err) {
-        console.error('Error retrieving events:', err.message); // Log the error
-        res.status(500).json({ message: 'Error retrieving events', error: err.message });
+        console.error('Error retrieving events:', err.message);
+        res.status(500).json({
+            message: 'Error retrieving events',
+            error: err.message
+        });
     }
 });
 
