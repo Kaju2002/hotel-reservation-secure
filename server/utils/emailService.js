@@ -26,7 +26,7 @@ let transporter = nodemailer.createTransport({
 class EmailService {
     static async sendReminderEmail(userEmail, event) {
         try {
-            const safeEventName = escapeHtml(event.safeEventName);
+            const safeEventName = escapeHtml(event.eventName);
 
             // Format the event date for better readability in the email
             const eventDateFormatted = new Date(event.eventDate).toLocaleString('en-US', {
@@ -40,7 +40,7 @@ class EmailService {
             const mailOptions = {
                 from: `"Event Reminder" <${process.env.GMAIL_EMAIL}>`, // Sender email (from your .env)
                 to: userEmail, // Recipient email (user)
-                subject: `Reminder: ${event.safeEventName} is Coming Up!`, // Custom subject line with event name
+                subject: `Reminder: ${event.eventName} is Coming Up!`, // Custom subject line with event name
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                         <div style="background-color: #ffffff; padding: 30px; border-radius: 10px;">
